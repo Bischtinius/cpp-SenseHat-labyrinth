@@ -11,6 +11,7 @@ int main()
 {
 
     playground test = playground(8,8);
+    
     srand ( time(NULL) );
     int startx = std::rand() % 8;      
     int starty = std::rand() % 8;

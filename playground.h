@@ -31,5 +31,6 @@ public:
     int PlayerPosX();
     int PlayerPosY();
     void clearBoard();
+    bool resetGame();
     ~playground();
 };

@@ -3,6 +3,7 @@
 #include "ledmatrixled2472g.h"
 #include <iostream>
 #include <unistd.h>
+#include <stdlib.h>
 
 playground::playground(/* args */)
 {
@@ -51,6 +52,13 @@ Cell *playground::newAdjacentCell(Cell *current_cell)
     srand ( time(NULL) );
     int direction = std::rand() % 4;     
 
+    int rand_dir = std::rand() % 2;
+
+    if (rand_dir == 0)
+    {
+        rand_dir = -1;
+    }
+
     while (not_new && outside_borders && field_counter < 4)
     {
 
@@ -84,7 +92,8 @@ Cell *playground::newAdjacentCell(Cell *current_cell)
         // std::cout << "new_pos " << newx << newy << std::endl;
         // std::cout << "direction " << direction << std::endl;
 
-        if (newx >= 0 && newx < 8 && newy >= 0 && newy < 8)
+        // if (newx >= 0 && newx < 8 && newy >= 0 && newy < 8)
+        if (newx >= 0 && newx < this->nx && newy >= 0 && newy < this->ny)
         {
             // std::cout << "inside Borders " << std::endl;
             if (this->map[newx][newy].getNew())
@@ -96,13 +105,17 @@ Cell *playground::newAdjacentCell(Cell *current_cell)
             }         
         }
         
-
+        
 
         field_counter ++;
-        direction ++;
+        direction += rand_dir;
         if (direction > 3)
         {
             direction = 0;
+        }
+        if (direction < 0)
+        {
+            direction = 3;
         }
         
         
@@ -119,7 +132,7 @@ Cell* playground::newAdjacentField(Cell* current_cell)
     {
         return_ptr = current_cell->getPrevius();
     }
-
+    std::cout << return_ptr << std::endl;
     return return_ptr;
     
 }
@@ -148,6 +161,7 @@ void playground::generate_map()
     Cell* current_cell = map[wx][wy].getCurrent();
     Cell* previus_cell = nullptr;
     Cell* next_cell = nullptr;
+    Cell* wall_cell = nullptr;
     current_cell->setField();
 
     int counter = 0;
@@ -158,7 +172,7 @@ void playground::generate_map()
         current_cell->setPrevius(previus_cell);
         current_cell->setStepsFromStart(steps_from_start);
 
-        Cell* next_cell = this->newAdjacentField(current_cell->getCurrent());
+        next_cell = this->newAdjacentField(current_cell->getCurrent());
 
         if (next_cell != nullptr)
         {
@@ -172,7 +186,7 @@ void playground::generate_map()
         }
         
 
-        Cell* wall_cell = this->newAdjacentCell(current_cell->getCurrent());
+        wall_cell = this->newAdjacentCell(current_cell->getCurrent());
         // std::cout << "wall_cell " << wall_cell << std::endl;
         
         if (wall_cell != nullptr)
@@ -198,9 +212,10 @@ void playground::generate_map()
         usleep(0.1 * microsecond);//sleeps for n second
 
         counter ++;
+    //     std::cout << (counter < 100) << std::endl;
     } while (counter < 100);
     //     std::cout << (next_cell != nullptr) << std::endl;
-    // } while (next_cell != nullptr);
+    // } while ((next_cell != nullptr));
     this->level_finished = false;
     this->setTargetCell();
 }
@@ -284,10 +299,26 @@ void playground::setTargetCell()
     Cell* target_cell;
     int max_steps = 0;
 
+    int delta_x = 0;
+    int delta_y = 0;
+    int delta = 0;
+    int max_delta = 0;
+
     for (int i = 0; i < nx; ++i)
     {
         for (int j = 0; j < ny; ++j)
         {
+            // delta_x = abs(map[i][j].getPositionX() - this->ix);
+            // delta_y = abs(map[i][j].getPositionY() - this->iy);
+
+            // delta = delta_x+delta_y;
+            // if((delta > max_delta) && map[i][j].getField())
+            // {
+            //     max_delta = delta;
+            //     target_cell = map[i][j].getCurrent();
+
+            // }
+
             if (map[i][j].getSteps() > max_steps)
             {
                 max_steps = map[i][j].getSteps();
@@ -372,6 +403,23 @@ void playground::clearBoard()
 
 	clear_allLED_LED2472G();
 	close_LED_LED2472G();
+}
+
+bool playground::resetGame()
+{
+    init_JoyStick_SKRHABE010();
+    int direction = read_Joystick_SKRHABE010();
+
+    if (direction != 0)
+    {
+        return true;
+    }else
+    {
+        return false;
+    }
+    
+    
+
 }
 
 bool playground::playerAlive()
